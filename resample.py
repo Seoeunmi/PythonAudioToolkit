@@ -7,7 +7,7 @@ import util
 
 def resample(input_file, resample_rate, output_path, input_path):
     x, orig_sr = util.read_audio_file(input_file)
-    x = librosa.resample(x, orig_sr, resample_rate)
+    x = librosa.resample(x, orig_sr=orig_sr, target_sr=resample_rate)
     util.write_audio_file(os.path.join(output_path, util.remove_base_path(input_file, input_path)), x, resample_rate)
 
 
