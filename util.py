@@ -3,6 +3,8 @@ import os
 from typing import Union
 import soundfile as sf
 import librosa
+import numpy as np
+from pesq import pesq as _pesq
 
 
 def change_font_color(color='', text=None):
@@ -130,3 +132,28 @@ def write_audio_file(file_path, data, sampling_rate):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     sf.write(file_path, data, sampling_rate)
 
+
+def pesq(true, pred, sampling_rate, return_mos=False):
+    if sampling_rate == 16000:
+        mos = _pesq(16000, true, pred, 'wb')
+        a, b = 1.3669, 3.8224
+    elif sampling_rate == 8000:
+        mos = _pesq(8000, true, pred, 'nb')
+        a, b = 1.4945, 4.6607
+    else:
+        raise_error(f'Pesq sampling_rate must be one of 16000, 8000. input sampling rate is ({sampling_rate})')
+
+    if return_mos:
+        return mos
+    else:
+        return (b-np.log((4.999-mos)/(mos-0.999)))/a
+
+
+def snr(signal, noise, max_snr=120, min_snr=-120):
+    noise_power = np.sum(np.square(noise))
+    signal_power = np.sum(np.square(signal))
+    if noise_power == 0:
+        return max_snr
+    if signal_power == 0:
+        return min_snr
+    return 10 * np.log10(signal_power / noise_power)
